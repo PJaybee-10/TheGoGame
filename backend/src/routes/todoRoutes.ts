@@ -1,128 +1,82 @@
 import express, { Request, Response } from 'express';
-import Todo, { ITodo } from '../models/TodoModel';
-import AuthMiddleware from '../middleware/authMiddleware';
+import { Todo } from '../models/Todo';
+import { authenticateToken } from '../middleware/authMiddleware';
 
 const router = express.Router();
 
-// Create Todo
-router.post('/', AuthMiddleware.authenticateUser, async (req: Request, res: Response) => {
+// Get all todos for a user
+router.get('/', authenticateToken, async (req: Request, res: Response) => {
   try {
-    const { title, description, priority, dueDate } = req.body;
-    const userId = req.user?.userId;
+    const todos = await Todo.find({ userId: req.user?.id }).sort({ createdAt: -1 });
+    return res.json(todos);
+  } catch (error) {
+    console.error('Error fetching todos:', error);
+    return res.status(500).json({ message: 'Error fetching todos' });
+  }
+});
 
-    if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+// Create a new todo
+router.post('/', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { title, description, priority } = req.body;
+    
+    if (!title) {
+      return res.status(400).json({ message: 'Title is required' });
     }
 
-    const newTodo: ITodo = new Todo({
+    const todo = new Todo({
       title,
       description,
-      userId,
-      priority,
-      dueDate,
-      isCompleted: false
+      priority: priority || 'medium',
+      userId: req.user?.id,
     });
 
-    await newTodo.save();
-    res.status(201).json(newTodo);
-  } catch (error) {
-    res.status(400).json({ 
-      error: 'Error creating todo', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
-    });
-  }
-});
-
-// Get All Todos for a User
-router.get('/', AuthMiddleware.authenticateUser, async (req: Request, res: Response) => {
-  try {
-    const userId = req.user?.userId;
-    const todos = await Todo.find({ userId }).sort({ createdAt: -1 });
-    res.json(todos);
-  } catch (error) {
-    res.status(500).json({ 
-      error: 'Error fetching todos', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
-    });
-  }
-});
-
-// Update Todo
-router.put('/:id', AuthMiddleware.authenticateUser, async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const { title, description, isCompleted, priority, dueDate } = req.body;
-    const userId = req.user?.userId;
-
-    const todo = await Todo.findOneAndUpdate(
-      { _id: id, userId },
-      { 
-        title, 
-        description, 
-        isCompleted, 
-        priority, 
-        dueDate,
-        updatedAt: new Date() 
-      },
-      { new: true }
-    );
-
-    if (!todo) {
-      return res.status(404).json({ error: 'Todo not found' });
-    }
-
-    res.json(todo);
-  } catch (error) {
-    res.status(400).json({ 
-      error: 'Error updating todo', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
-    });
-  }
-});
-
-// Delete Todo
-router.delete('/:id', AuthMiddleware.authenticateUser, async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user?.userId;
-
-    const todo = await Todo.findOneAndDelete({ _id: id, userId });
-
-    if (!todo) {
-      return res.status(404).json({ error: 'Todo not found' });
-    }
-
-    res.json({ message: 'Todo deleted successfully' });
-  } catch (error) {
-    res.status(400).json({ 
-      error: 'Error deleting todo', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
-    });
-  }
-});
-
-// Mark Todo as Complete/Incomplete
-router.patch('/:id/toggle', AuthMiddleware.authenticateUser, async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-    const userId = req.user?.userId;
-
-    const todo = await Todo.findOne({ _id: id, userId });
-
-    if (!todo) {
-      return res.status(404).json({ error: 'Todo not found' });
-    }
-
-    todo.isCompleted = !todo.isCompleted;
-    todo.updatedAt = new Date();
     await todo.save();
-
-    res.json(todo);
+    return res.status(201).json(todo);
   } catch (error) {
-    res.status(400).json({ 
-      error: 'Error toggling todo status', 
-      details: error instanceof Error ? error.message : 'Unknown error' 
-    });
+    console.error('Error creating todo:', error);
+    return res.status(500).json({ message: 'Error creating todo' });
+  }
+});
+
+// Update a todo
+router.put('/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const { title, description, completed, priority } = req.body;
+
+    const todo = await Todo.findOne({ _id: id, userId: req.user?.id });
+    if (!todo) {
+      return res.status(404).json({ message: 'Todo not found' });
+    }
+
+    todo.title = title || todo.title;
+    todo.description = description || todo.description;
+    todo.completed = completed !== undefined ? completed : todo.completed;
+    todo.priority = priority || todo.priority;
+
+    await todo.save();
+    return res.json(todo);
+  } catch (error) {
+    console.error('Error updating todo:', error);
+    return res.status(500).json({ message: 'Error updating todo' });
+  }
+});
+
+// Delete a todo
+router.delete('/:id', authenticateToken, async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    const todo = await Todo.findOneAndDelete({ _id: id, userId: req.user?.id });
+    
+    if (!todo) {
+      return res.status(404).json({ message: 'Todo not found' });
+    }
+
+    return res.json({ message: 'Todo deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting todo:', error);
+    return res.status(500).json({ message: 'Error deleting todo' });
   }
 });
 
