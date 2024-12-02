@@ -1,30 +1,63 @@
 # TheGoGame - Task Management Application
 
-A full-stack task management application with web and mobile interfaces.
+A modern, full-stack task management application with web and mobile interfaces.
 
 ## Features
 
 - Create, edit, and delete task items
 - Mark tasks as complete
-- Multi-user support with authentication
+- Multi-user support with JWT authentication
 - Cross-platform compatibility (iOS, Android, Web)
-- Real-time updates
-- Session-based authentication
+- Modern, responsive UI with animations
+- Secure authentication with JWT tokens
+- Error handling and validation
+- Loading states and visual feedback
 
 ## Tech Stack
 
-- **Frontend**: React Native with TypeScript, React with TypeScript
-- **Backend**: Node.js with Express, Prisma
-- **Database**: MongoDB, SQLite
-- **Authentication**: Session-based with express-session
+### Backend
+- Node.js with Express
+- TypeScript
+- Prisma ORM
+- SQLite database
+- JWT authentication
+
+### Web Frontend
+- React 18
+- TypeScript
+- TailwindCSS for styling
+- React Router v6
+- Axios for API calls
+- Modern UI with CSS animations
+
+### Mobile App
+- React Native
+- TypeScript
+- React Navigation
+- Axios for API calls
+- AsyncStorage for token management
+- React Native Reanimated for animations
 
 ## Project Structure
 
 ```
 TheGoGame/
 ├── backend/         # Node.js + Express + Prisma backend
+│   ├── src/        # Source code
+│   ├── prisma/     # Database schema and migrations
+│   └── ...
 ├── web/            # React + TypeScript web frontend
+│   ├── src/        
+│   │   ├── screens/    # Screen components
+│   │   ├── services/   # API services
+│   │   └── types/      # TypeScript types
+│   └── ...
 └── mobile/         # React Native mobile app
+    ├── src/
+    │   ├── screens/    # Screen components
+    │   ├── services/   # API services
+    │   └── contexts/   # React contexts
+    └── ...
 ```
 
 ## Prerequisites
@@ -33,9 +66,8 @@ TheGoGame/
 - npm (v6 or higher)
 - Android Studio (for mobile development)
 - Expo CLI (for mobile development)
-- MongoDB
 - React Native development environment
-- Yarn or npm
+- Git
 
 ## Setting Up the Development Environment
 
@@ -53,10 +85,17 @@ TheGoGame/
 
 3. Set up the database:
    ```bash
+   npx prisma generate
    npx prisma migrate dev
    ```
 
-4. Start the development server:
+4. Create a `.env` file with the following:
+   ```env
+   DATABASE_URL="file:./dev.db"
+   JWT_SECRET="your-secret-key"
+   ```
+
+5. Start the development server:
    ```bash
    npm run dev
    ```
@@ -99,43 +138,41 @@ The web app will run on http://localhost:3000
    npx expo start
    ```
 
-4. Run on Android:
-   - Press 'a' in the terminal to run on Android emulator
-   - Or scan the QR code with Expo Go app on your physical device
+## Recent Updates
+
+### Authentication Improvements
+- Switched from session-based to JWT authentication
+- Enhanced security with proper token management
+- Added proper error handling and validation
+
+### UI/UX Enhancements
+- Redesigned login screens for both web and mobile
+- Added loading states and animations
+- Improved error messaging and user feedback
+- Enhanced form validation and user input handling
+- Added responsive design for all screen sizes
+
+### Code Quality
+- Added TypeScript types for better type safety
+- Improved project structure and organization
+- Enhanced error handling throughout the application
+- Added proper API service layer
+- Implemented React contexts for state management
 
 ## Default Login Credentials
-
-For testing purposes, you can use these default credentials:
-- Username: Test123
-- Password: Test123!
-
-## API Endpoints
-
-### Authentication
-- POST /auth/register - Register a new user
-- POST /auth/login - Login user
-- GET /auth/verify - Verify token
-
-### Todo Management
-- GET /todos - Get all todos
-- POST /todos - Create a new todo
-- PUT /todos/:id - Update a todo
-- DELETE /todos/:id - Delete a todo
-
-## Environment Variables
-
-Create a `.env` file in the backend directory with the following variables:
-```env
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="your-secret-key"
+```
+Username: Test123
+Password: Test123!
 ```
 
-## Additional Notes
+## Contributing
 
-- The backend uses SQLite for development. For production, consider using PostgreSQL.
-- The mobile app uses AsyncStorage for token management.
-- The web app uses localStorage for token management.
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## License
 
-MIT
+This project is licensed under the MIT License - see the LICENSE file for details.
